@@ -12,6 +12,7 @@ def _iso(d):
 def seed_demo(today=None):
     init_db()
     wipe_user_data(USER_ID)
+
     today = today or date.today()
     exam_day = today + timedelta(days=5)
     os_quiz = today + timedelta(days=10)
@@ -19,21 +20,46 @@ def seed_demo(today=None):
 
     with db() as conn:
         conn.execute(
-            "INSERT INTO users (id, name, daily_available_minutes, week_availability_json) VALUES (?, ?, ?, ?)",
+            """
+            INSERT INTO users
+            (id, name, daily_available_minutes, week_availability_json)
+            VALUES (%s, %s, %s, %s)
+            """,
             (USER_ID, "Alex", DEFAULT_AVAILABLE_MINUTES, None),
         )
-        dbms_id = conn.execute(
-            "INSERT INTO subjects (user_id, name, color, importance) VALUES (?, ?, ?, ?)",
+
+        cur = conn.execute(
+            """
+            INSERT INTO subjects
+            (user_id, name, color, importance)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id
+            """,
             (USER_ID, "DBMS", "#6366f1", 5),
-        ).lastrowid
-        os_id = conn.execute(
-            "INSERT INTO subjects (user_id, name, color, importance) VALUES (?, ?, ?, ?)",
+        )
+        dbms_id = cur.fetchone()["id"]
+
+        cur = conn.execute(
+            """
+            INSERT INTO subjects
+            (user_id, name, color, importance)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id
+            """,
             (USER_ID, "OS", "#8b5cf6", 3),
-        ).lastrowid
-        web_id = conn.execute(
-            "INSERT INTO subjects (user_id, name, color, importance) VALUES (?, ?, ?, ?)",
+        )
+        os_id = cur.fetchone()["id"]
+
+        cur = conn.execute(
+            """
+            INSERT INTO subjects
+            (user_id, name, color, importance)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id
+            """,
             (USER_ID, "Web Dev", "#06b6d4", 4),
-        ).lastrowid
+        )
+        web_id = cur.fetchone()["id"]
 
         topics = [
             (dbms_id, "ER Model", 2, 70, 90, 1),
@@ -45,53 +71,174 @@ def seed_demo(today=None):
             (web_id, "React Components", 2, 75, 90, 1),
             (web_id, "REST APIs", 3, 45, 120, 0),
         ]
+
         for subject_id, name, difficulty, progress, minutes, revisions in topics:
             conn.execute(
-                "INSERT INTO topics (subject_id, name, difficulty, progress_pct, estimated_minutes, revision_count) "
-                "VALUES (?, ?, ?, ?, ?, ?)",
-                (subject_id, name, difficulty, progress, minutes, revisions),
+                """
+                INSERT INTO topics
+                (
+                    subject_id,
+                    name,
+                    difficulty,
+                    progress_pct,
+                    estimated_minutes,
+                    revision_count
+                )
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    subject_id,
+                    name,
+                    difficulty,
+                    progress,
+                    minutes,
+                    revisions,
+                ),
             )
 
         norm_id = conn.execute(
-            "SELECT id FROM topics WHERE name = 'Normalization'"
-        ).fetchone()[0]
-        sched_id = conn.execute("SELECT id FROM topics WHERE name = 'Scheduling'").fetchone()[0]
-        rest_id = conn.execute("SELECT id FROM topics WHERE name = 'REST APIs'").fetchone()[0]
+            "SELECT id FROM topics WHERE name = %s",
+            ("Normalization",),
+        ).fetchone()["id"]
+
+        sched_id = conn.execute(
+            "SELECT id FROM topics WHERE name = %s",
+            ("Scheduling",),
+        ).fetchone()["id"]
+
+        rest_id = conn.execute(
+            "SELECT id FROM topics WHERE name = %s",
+            ("REST APIs",),
+        ).fetchone()["id"]
 
         conn.execute(
-            "INSERT INTO deadlines (user_id, subject_id, topic_id, type, title, due_date, priority) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (USER_ID, dbms_id, None, "exam", "DBMS Midterm", _iso(exam_day), 5),
+            """
+            INSERT INTO deadlines
+            (
+                user_id,
+                subject_id,
+                topic_id,
+                type,
+                title,
+                due_date,
+                priority
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                USER_ID,
+                dbms_id,
+                None,
+                "exam",
+                "DBMS Midterm",
+                _iso(exam_day),
+                5,
+            ),
         )
+
         conn.execute(
-            "INSERT INTO deadlines (user_id, subject_id, topic_id, type, title, due_date, priority) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (USER_ID, os_id, sched_id, "quiz", "OS Scheduling Quiz", _iso(os_quiz), 3),
+            """
+            INSERT INTO deadlines
+            (
+                user_id,
+                subject_id,
+                topic_id,
+                type,
+                title,
+                due_date,
+                priority
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                USER_ID,
+                os_id,
+                sched_id,
+                "quiz",
+                "OS Scheduling Quiz",
+                _iso(os_quiz),
+                3,
+            ),
         )
+
         conn.execute(
-            "INSERT INTO deadlines (user_id, subject_id, topic_id, type, title, due_date, priority) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (USER_ID, web_id, rest_id, "project", "Web API Project", _iso(web_due), 4),
+            """
+            INSERT INTO deadlines
+            (
+                user_id,
+                subject_id,
+                topic_id,
+                type,
+                title,
+                due_date,
+                priority
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                USER_ID,
+                web_id,
+                rest_id,
+                "project",
+                "Web API Project",
+                _iso(web_due),
+                4,
+            ),
         )
 
         yesterday = today - timedelta(days=1)
+
         conn.execute(
-            "INSERT INTO progress_logs (user_id, date, minutes_studied, tasks_completed) VALUES (?, ?, ?, ?)",
+            """
+            INSERT INTO progress_logs
+            (user_id, date, minutes_studied, tasks_completed)
+            VALUES (%s, %s, %s, %s)
+            """,
             (USER_ID, _iso(yesterday), 90, 1),
         )
+
         conn.execute(
-            "INSERT INTO progress_logs (user_id, date, minutes_studied, tasks_completed) VALUES (?, ?, ?, ?)",
-            (USER_ID, _iso(today - timedelta(days=2)), 60, 1),
-        )
-        conn.execute(
-            "INSERT INTO progress_logs (user_id, date, minutes_studied, tasks_completed) VALUES (?, ?, ?, ?)",
-            (USER_ID, _iso(today - timedelta(days=3)), 45, 0),
+            """
+            INSERT INTO progress_logs
+            (user_id, date, minutes_studied, tasks_completed)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (
+                USER_ID,
+                _iso(today - timedelta(days=2)),
+                60,
+                1,
+            ),
         )
 
-        # Keep the live generate step as the wow moment: no pre-filled future plan.
         conn.execute(
-            "INSERT INTO notifications (user_id, type, title, body, read, created_at, related_session_id) "
-            "VALUES (?, ?, ?, ?, 0, ?, NULL)",
+            """
+            INSERT INTO progress_logs
+            (user_id, date, minutes_studied, tasks_completed)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (
+                USER_ID,
+                _iso(today - timedelta(days=3)),
+                45,
+                0,
+            ),
+        )
+
+        conn.execute(
+            """
+            INSERT INTO notifications
+            (
+                user_id,
+                type,
+                title,
+                body,
+                read,
+                created_at,
+                related_session_id
+            )
+            VALUES (%s, %s, %s, %s, 0, %s, NULL)
+            """,
             (
                 USER_ID,
                 "deadline",
@@ -101,4 +248,9 @@ def seed_demo(today=None):
             ),
         )
 
-    return {"ok": True, "user_id": USER_ID, "exam_date": _iso(exam_day), "normalization_topic_id": norm_id}
+    return {
+        "ok": True,
+        "user_id": USER_ID,
+        "exam_date": _iso(exam_day),
+        "normalization_topic_id": norm_id,
+    }

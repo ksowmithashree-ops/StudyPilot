@@ -8,6 +8,7 @@ load_dotenv(ROOT / ".env")
 load_dotenv(ROOT.parent / ".env")
 
 DATABASE_PATH = os.environ.get("DATABASE_PATH", str(ROOT / "studypilot.db"))
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
 USER_ID = 1

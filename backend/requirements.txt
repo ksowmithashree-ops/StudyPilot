@@ -3,3 +3,5 @@ flask-cors==6.0.1
 python-dotenv==1.1.1
 google-generativeai==0.8.5
 pytest==8.4.2
+psycopg[binary]
+gunicorn
