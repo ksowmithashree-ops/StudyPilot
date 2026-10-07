@@ -1,3 +1,7 @@
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent)) 
 from flask import Flask, jsonify
 from flask_cors import CORS
 
