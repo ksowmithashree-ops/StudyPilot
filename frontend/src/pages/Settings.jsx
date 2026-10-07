@@ -30,7 +30,7 @@ export default function Settings() {
 
   async function resetDemo() {
     try {
-      await api.post("/demo/reset", {});
+      await api.post("/api/demo/reset", {});
       pushToast("Demo data reset — DBMS exam in 5 days", "success");
       navigate("/app");
     } catch (err) {

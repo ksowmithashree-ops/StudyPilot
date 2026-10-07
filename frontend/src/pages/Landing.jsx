@@ -19,7 +19,7 @@ export default function Landing() {
 
   async function startDemo() {
     try {
-      await api.post("/demo/reset", {});
+      await api.post("/api/demo/reset", {});
       pushToast("Demo data loaded for Alex’s DBMS week", "success");
       navigate("/app");
     } catch (err) {
