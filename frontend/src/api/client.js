@@ -1,4 +1,4 @@
-const API = import.meta.env.VITE_API_URL;
+const API = import.meta.env.VITE_API_URL || "/api";
 
 async function request(path, options = {}) {
   const url = `${API}${path}`;
@@ -24,7 +24,9 @@ async function request(path, options = {}) {
 
   if (!response.ok) {
     throw new Error(
-      data.error || `API Error: ${response.status}`
+      `API Error ${response.status} at ${url}: ${
+        data.error || text || "Unknown error"
+      }`
     );
   }
 
