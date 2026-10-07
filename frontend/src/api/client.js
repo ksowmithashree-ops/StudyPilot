@@ -1,4 +1,4 @@
-const API = "/api";
+const API = import.meta.env.VITE_API_URL || "/api";
 
 async function request(path, options = {}) {
   const response = await fetch(`${API}${path}`, {
@@ -6,10 +6,13 @@ async function request(path, options = {}) {
     ...options,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
+
   const data = await response.json().catch(() => ({}));
+
   if (!response.ok) {
     throw new Error(data.error || "Request failed");
   }
+
   return data;
 }
 
