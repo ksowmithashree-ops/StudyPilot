@@ -27,12 +27,13 @@ from config import USER_ID
 def create_app():
     app = Flask(__name__)
 
-    # Allow the deployed frontend to communicate with the backend
+    # Allow frontend to communicate with backend
     CORS(
         app,
         resources={
             r"/*": {
                 "origins": [
+                    "https://study-pilot-4hju.vercel.app",
                     "https://studypilot-frontend-one.vercel.app",
                     "https://studypilot-frontend-git-main-ksowmithashree-ops.vercel.app",
                     "https://studypilot-frontend-fh1owfdgt-ksowmithashree-ops.vercel.app",
@@ -53,14 +54,14 @@ def create_app():
         ],
     )
 
-    # Initialize PostgreSQL database
+    # Initialize database
     init_db()
 
-    # Create demo data if the user does not exist
+    # Create demo data if user does not exist
     if not get_user(USER_ID):
         seed_demo()
 
-    # Register API routes
+    # Register routes
     for blueprint in (
         subjects_bp,
         topics_bp,
@@ -74,17 +75,14 @@ def create_app():
     ):
         app.register_blueprint(blueprint)
 
-    # Health check
     @app.get("/api/health")
     def health():
         return jsonify({"ok": True})
 
-    # 404 handler
     @app.errorhandler(404)
     def not_found(_e):
         return jsonify({"error": "Not found"}), 404
 
-    # 500 handler
     @app.errorhandler(500)
     def server_error(_e):
         return jsonify({"error": "Server error"}), 500
