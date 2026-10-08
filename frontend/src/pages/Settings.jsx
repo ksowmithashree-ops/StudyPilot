@@ -74,7 +74,9 @@ export default function Settings() {
 
   async function resetDemo() {
     try {
-      await api.post("/api/demo/reset", {});
+      // client.js already adds /api
+      await api.post("/demo/reset", {});
+
       pushToast("Demo data reset — DBMS exam in 5 days", "success");
       navigate("/app");
     } catch (err) {
@@ -95,7 +97,10 @@ export default function Settings() {
       {showNameSetup && (
         <Card className="max-w-xl mb-4 space-y-4">
           <div>
-            <h2 className="text-lg font-semibold">Welcome to StudyPilot 👋</h2>
+            <h2 className="text-lg font-semibold">
+              Welcome to StudyPilot 👋
+            </h2>
+
             <p className="text-sm text-slate-500 mt-1">
               Enter your name to personalize your study dashboard.
             </p>
@@ -103,6 +108,7 @@ export default function Settings() {
 
           <label className="block text-sm">
             Your name
+
             <input
               autoFocus
               className="mt-1 w-full rounded-xl border px-3 py-2"
@@ -117,16 +123,21 @@ export default function Settings() {
             />
           </label>
 
-          <Button onClick={saveFirstName}>Continue</Button>
+          <Button onClick={saveFirstName}>
+            Continue
+          </Button>
         </Card>
       )}
 
       {/* Profile settings */}
       <Card className="max-w-xl space-y-4">
-        <h2 className="text-lg font-semibold">Profile</h2>
+        <h2 className="text-lg font-semibold">
+          Profile
+        </h2>
 
         <label className="block text-sm">
           Name
+
           <input
             className="mt-1 w-full rounded-xl border px-3 py-2"
             value={settings.name}
@@ -141,6 +152,7 @@ export default function Settings() {
 
         <label className="block text-sm">
           Daily available minutes
+
           <input
             className="mt-1 w-full rounded-xl border px-3 py-2"
             type="number"
@@ -163,9 +175,14 @@ export default function Settings() {
         </p>
 
         <div className="flex flex-wrap gap-2">
-          <Button onClick={save}>Save Profile</Button>
+          <Button onClick={save}>
+            Save Profile
+          </Button>
 
-          <Button variant="secondary" onClick={resetDemo}>
+          <Button
+            variant="secondary"
+            onClick={resetDemo}
+          >
             Reset demo data
           </Button>
         </div>
