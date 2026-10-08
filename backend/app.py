@@ -1,10 +1,9 @@
 import sys
 from pathlib import Path
 
-# Make sure Python can find backend modules on Vercel
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 from database import init_db
@@ -27,41 +26,40 @@ from config import USER_ID
 def create_app():
     app = Flask(__name__)
 
-    # Allow frontend to communicate with backend
+    # Allow the deployed frontend and local development
     CORS(
         app,
-        resources={
-            r"/*": {
-                "origins": [
-                    "https://study-pilot-4hju.vercel.app",
-                    "https://studypilot-frontend-one.vercel.app",
-                    "https://studypilot-frontend-git-main-ksowmithashree-ops.vercel.app",
-                    "https://studypilot-frontend-fh1owfdgt-ksowmithashree-ops.vercel.app",
-                    "http://localhost:5173",
-                ]
-            }
-        },
-        methods=[
-            "GET",
-            "POST",
-            "PATCH",
-            "DELETE",
-            "OPTIONS",
-        ],
-        allow_headers=[
-            "Content-Type",
-            "Authorization",
-        ],
+        resources={r"/*": {"origins": "*"}},
+        methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization"],
     )
+
+    # Handle browser preflight requests
+    @app.before_request
+    def handle_preflight():
+        if request.method == "OPTIONS":
+            return "", 204
+
+    # Extra CORS headers for every response
+    @app.after_request
+    def add_cors_headers(response):
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = (
+            "GET, POST, PATCH, DELETE, OPTIONS"
+        )
+        response.headers["Access-Control-Allow-Headers"] = (
+            "Content-Type, Authorization"
+        )
+        return response
 
     # Initialize database
     init_db()
 
-    # Create demo data if user does not exist
+    # Create demo user/data if needed
     if not get_user(USER_ID):
         seed_demo()
 
-    # Register routes
+    # Register API routes
     for blueprint in (
         subjects_bp,
         topics_bp,
