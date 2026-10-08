@@ -5,6 +5,7 @@ import {
   CheckSquare,
   BarChart3,
   Bot,
+  Settings,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
@@ -15,6 +16,7 @@ const navigation = [
   { to: "/app/tasks", label: "Tasks", icon: CheckSquare },
   { to: "/app/progress", label: "Progress", icon: BarChart3 },
   { to: "/app/assistant", label: "AI Assistant", icon: Bot },
+  { to: "/app/settings", label: "Profile & Settings", icon: Settings },
 ];
 
 export function Sidebar() {
@@ -25,7 +27,13 @@ export function Sidebar() {
           <NavLink
             key={to}
             to={to}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100"
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-lg px-3 py-2 ${
+                isActive
+                  ? "bg-gray-100 font-medium"
+                  : "hover:bg-gray-100"
+              }`
+            }
           >
             <Icon size={20} />
             <span>{label}</span>
